@@ -26,11 +26,11 @@
             <ColumnDefinition Width="0" x:Name="ExtraColumn"/>
         </Grid.ColumnDefinitions>
 
-        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Foreground="#212121" FontSize="20" HorizontalAlignment="Right" VerticalAlignment="Bottom" Padding="10" x:Name="tempRes"/>
+        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Foreground="#212121" FontSize="20" HorizontalAlignment="Right" VerticalAlignment="Bottom" Padding="10" x:Name="historyLabel"/>
         
         <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Foreground="White" FontSize="35" HorizontalAlignment="Right" Padding="10" x:Name="exprLabel"/>
 
-        <Button Grid.Row="2" Grid.Column="0" Background="#212121" Foreground="White" FontSize="25">CE</Button>
+        <Button Grid.Row="2" Grid.Column="0" Background="#212121" Foreground="White" FontSize="25" Click="Undo">CE</Button>
         <Button Grid.Row="2" Grid.Column="1" Background="#212121" Foreground="White" FontSize="25">C</Button>
         <Button Grid.Row="2" Grid.Column="2" Background="#212121" Foreground="White" FontSize="25">⌫</Button>
         <Button Grid.Row="2" Grid.Column="3" Background="#212121" Foreground="White" FontSize="25">/</Button>
@@ -63,8 +63,7 @@
 
         <Canvas Background="Black" Grid.Row="0" Grid.Column="0">
             <Button Width="30" Height="30" Canvas.Top="0" Canvas.Left="0" Background="#212121" Foreground="White" FontSize="15" Content="≡" Click="ToggleExtraColumn" x:Name="ToggleExtraColumnButton"/>
-            <Button Width="45" Height="15" Canvas.Top="0" Canvas.Left="30" Background="#212121" Foreground="White" FontSize="10" Content="Undo" Click="Undo"/>
-            <Button Width="45" Height="15" Canvas.Top="15" Canvas.Left="30" Background="#212121" Foreground="White" FontSize="10" Content="Redo" Click="Redo"/>
+            <Button Width="45" Height="30" Canvas.Top="0" Canvas.Left="30" Background="#212121" Foreground="White" FontSize="10" Content="Redo" Click="Redo"/>
         </Canvas>
     </Grid>
 </Window>

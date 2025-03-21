@@ -40,11 +40,103 @@ namespace OOP_2sem_lab2
 
             foreach (UIElement element in MainRoot.Children)
             {
-                if (element is Button )
+                if (element is Button button)
                 {
-                    ((Button)element).Click += ButtonClick;
+                    switch (button.Content.ToString())
+                    {
+                        case ".":
+                        case "/":
+                        case "*":
+                        case "-":
+                        case "+":
+                            button.Click += BCOperations;
+                            break;
+                        case "√":
+                        case "n^x":
+                        case "ln":
+                        case "π":
+                            button.Click += BCExtraColumnOperations;
+                            break;
+                        case "C":
+                        case "=":
+                        case "⌫":
+                            button.Click += BCControl;
+                            break;
+                        default:
+                            button.Click += BCValue;
+                            break;
+                    }
                 }
             }
+        }
+        private void BCOperations(object sender, RoutedEventArgs e)
+        {
+            CheckErrorOnScreen();
+            isFirstSymbol = exprLabel.Text.Length == 0 ? true : false;
+
+            string str = (string)((Button)e.OriginalSource).Content;
+
+            if (exprLabel.Text.Length < 30)
+            {
+                if (isFirstSymbol || !op.Contains(exprLabel.Text[exprLabel.Text.Length - 1].ToString()))
+                {
+                    _commandManager.ExecuteCommand(new AddTextCommand(_calculator, str));
+                    exprLabel.Text = _calculator.Expression;
+                    historyLabel.Text = _calculator.Result;
+                }
+            }
+        }
+        private void BCExtraColumnOperations(object sender, RoutedEventArgs e)
+        {
+            CheckErrorOnScreen();
+            string str = (string)((Button)e.OriginalSource).Content;
+
+            switch (str)
+            {
+                case "π":
+                    PiOp();
+                    break;
+                case "e":
+                    EOp();
+                    break;
+                case "√x":
+                    SqrtOp();
+                    Calculation();
+                    break;
+                case "n^x":
+                    PowerOp();
+                    Calculation();
+                    break;
+                case "ln":
+                    LnOp();
+                    Calculation();
+                    break;
+            }
+        }
+        private void BCControl(object sender, RoutedEventArgs e)
+        {
+            CheckErrorOnScreen();
+            string str = (string)((Button)e.OriginalSource).Content;
+
+            switch (str)
+            {
+                case "=":
+                    EqualOp(); 
+                    break;
+                case "⌫":
+                    DelOp();
+                    break;
+                case "C":
+                    ClearOp();
+                    break;
+            }
+        }
+        private void BCValue(object sender, RoutedEventArgs e)
+        {
+            CheckErrorOnScreen();
+            string str = (string)((Button)e.OriginalSource).Content;
+
+            OthersOp(str);
         }
         private void ToggleExtraColumn(object sender, RoutedEventArgs e)
         {
@@ -53,124 +145,30 @@ namespace OOP_2sem_lab2
             ToggleExtraColumnButton.Content = isExtraVisible ? "<" : "≡";
             this.Width = isExtraVisible ? 370 : 300;
         }
-        private void UndoRedo(object sender, RoutedEventArgs e)
-        {
-            string str = (string)((Button)e.OriginalSource).Content;
-
-            if (str == "Undo")
-            {
-                _commandManager.Undo();
-            }
-            else if (str == "Redo")
-            {
-                _commandManager.Redo();
-            }
-
-            exprLabel.Text = _calculator.Expression;
-            tempRes.Text = _calculator.Result;
-        }
         private void Undo(object sender, EventArgs e)
         {
             _commandManager.Undo();
             exprLabel.Text = _calculator.Expression;
-            tempRes.Text = _calculator.Result;
+            historyLabel.Text = _calculator.Result;
         }
 
         private void Redo(object sender, EventArgs e)
         {
             _commandManager.Redo();
             exprLabel.Text = _calculator.Expression;
-            tempRes.Text = _calculator.Result;
-        }
-
-        private void ButtonClick(object sender, RoutedEventArgs e)
-        {
-            if (exprLabel.Text.Length == 0)
-            {
-                isFirstSymbol = true;
-            }
-            else if (exprLabel.Text.Length != 0)
-            {
-                isFirstSymbol = false;
-            }
-            if (exprLabel.Text == "Error!")
-            {
-                exprLabel.Text = "";
-            }
-
-            string str = (string)((Button)e.OriginalSource).Content;
-
-            if (str == "=")
-            {
-                EqualOp();
-            }
-            else if (str == "⌫")
-            {
-                DelOp();
-            }
-            else if (str == "CE")
-            {
-                ClearEntryOp();
-            }
-            else if (str == "C")
-            {
-                ClearOp();
-            }
-            else if (str == "π")
-            {
-                PiOp();
-            }
-            else if (str == "e")
-            {
-                EOp();
-            }
-            else if (str == "√x")
-            {
-                SqrtOp();
-                Calculation();
-            }
-            else if (str == "n^x")
-            {
-                PowerOp();
-                Calculation();
-            }
-            else if (str == "ln")
-            {
-                LnOp();
-                Calculation();
-            }
-            else if (awaitingSqrtInput && double.TryParse(str, out _))
-            {
-                sqrtInput += str;
-            }
-            else if (awaitingPowerBase && double.TryParse(str, out _))
-            {
-                powerBase += str;
-            }
-            else if (awaitingPowerExponent && double.TryParse(str, out _))
-            {
-                powerExponent += str;
-            }
-            else if (awaitingLnInput && double.TryParse(str, out _))
-            {
-                lnInput += str;
-            }
-            else
-            {
-                OthersOp(str);
-            }
+            historyLabel.Text = _calculator.Result;
         }
         private void EqualOp()
         {
             try
             {
-                exprLabel.Text = tempRes.Text;
-                tempRes.Text = "";
+                exprLabel.Text = historyLabel.Text;
+                historyLabel.Text = "";
             }
             catch
             {
                 exprLabel.Text = "Error!";
-                tempRes.Text = "";
+                historyLabel.Text = "";
             }
         }
         private void DelOp()
@@ -190,27 +188,14 @@ namespace OOP_2sem_lab2
                 else
                 {
                     exprLabel.Text = "Error!";
-                    tempRes.Text = "";
+                    historyLabel.Text = "";
                 }
             }
-        }
-        private void ClearEntryOp()
-        {
-            exprLabel.Text = "";
-            tempRes.Text = "";
-            awaitingSqrtInput = false;
-            awaitingPowerBase = false;
-            awaitingPowerExponent = false;
-            awaitingLnInput = false;
-            sqrtInput = "";
-            powerBase = "";
-            powerExponent = "";
-            lnInput = "";
         }
         private void ClearOp()
         {
             exprLabel.Text = "";
-            tempRes.Text = "";
+            historyLabel.Text = "";
             awaitingSqrtInput = false;
             awaitingPowerBase = false;
             awaitingPowerExponent = false;
@@ -226,7 +211,7 @@ namespace OOP_2sem_lab2
             {
                 _commandManager.ExecuteCommand(new AddTextCommand(_calculator, Math.PI.ToString("0.00000")));
                 exprLabel.Text = _calculator.Expression;
-                tempRes.Text = _calculator.Result;
+                historyLabel.Text = _calculator.Result;
             }
         }
         private void EOp()
@@ -235,7 +220,7 @@ namespace OOP_2sem_lab2
             {
                 _commandManager.ExecuteCommand(new AddTextCommand(_calculator, Math.E.ToString("0.00000")));
                 exprLabel.Text = _calculator.Expression;
-                tempRes.Text = _calculator.Result;
+                historyLabel.Text = _calculator.Result;
             }
         }
         private void OthersOp(string str)
@@ -249,21 +234,12 @@ namespace OOP_2sem_lab2
                     {
                         _commandManager.ExecuteCommand(new AddTextCommand(_calculator, str));
                         exprLabel.Text = _calculator.Expression;
-                        tempRes.Text = _calculator.Result;
+                        historyLabel.Text = _calculator.Result;
                     }
                     catch
                     {
                         exprLabel.Text = "Error!";
-                        tempRes.Text = "";
-                    }
-                }
-                else
-                {
-                    if (isFirstSymbol || !op.Contains(exprLabel.Text[exprLabel.Text.Length - 1].ToString()))
-                    {
-                        _commandManager.ExecuteCommand(new AddTextCommand(_calculator, str));
-                        exprLabel.Text = _calculator.Expression;
-                        tempRes.Text = _calculator.Result;
+                        historyLabel.Text = "";
                     }
                 }
             }
@@ -283,12 +259,12 @@ namespace OOP_2sem_lab2
 
                     _commandManager.ExecuteCommand(new AddTextCommand(_calculator, result.ToString("0.#####")));
                     exprLabel.Text = _calculator.Expression;
-                    tempRes.Text = _calculator.Result;
+                    historyLabel.Text = _calculator.Result;
                 }
                 else
                 {
                     exprLabel.Text = "Error!";
-                    tempRes.Text = "";
+                    historyLabel.Text = "";
                 }
                 awaitingSqrtInput = false;
             }
@@ -314,12 +290,12 @@ namespace OOP_2sem_lab2
 
                     _commandManager.ExecuteCommand(new AddTextCommand(_calculator, result.ToString("0.#####")));
                     exprLabel.Text = _calculator.Expression;
-                    tempRes.Text = _calculator.Result;
+                    historyLabel.Text = _calculator.Result;
                 }
                 else
                 {
                     exprLabel.Text = "Error!";
-                    tempRes.Text = "";
+                    historyLabel.Text = "";
                 }
                 awaitingPowerExponent = false;
             }
@@ -340,12 +316,12 @@ namespace OOP_2sem_lab2
 
                     _commandManager.ExecuteCommand(new AddTextCommand(_calculator, result.ToString("0.#####")));
                     exprLabel.Text = _calculator.Expression;
-                    tempRes.Text = _calculator.Result;
+                    historyLabel.Text = _calculator.Result;
                 }
                 else
                 {
                     exprLabel.Text = "Error!";
-                    tempRes.Text = "";
+                    historyLabel.Text = "";
                 }
                 awaitingLnInput = false;
             }
@@ -357,10 +333,17 @@ namespace OOP_2sem_lab2
                 if (!op.Contains(exprLabel.Text[exprLabel.Text.Length - 1].ToString()))
                 {
                     string result = new DataTable().Compute(exprLabel.Text, null).ToString();
-                    tempRes.Text = result;
+                    historyLabel.Text = result;
                 }
             }
             catch { }
+        }
+        private void CheckErrorOnScreen()
+        {
+            if (exprLabel.Text == "Error!")
+            {
+                exprLabel.Text = "";
+            }
         }
     }
 }
