@@ -23,17 +23,9 @@ namespace OOP_2sem_lab2
     {
         private Calculator _calculator = new Calculator();
         private CommandManager _commandManager = new CommandManager();
-        List<string> op = new List<string>() { "/", "*", "-", "+", "√", "n^x", "ln" };
+        List<string> op = new List<string>() { "/", "*", "-", "+", "^" };
         bool isFirstSymbol = true;
         private bool isExtraVisible = false;
-        private bool awaitingSqrtInput = false;
-        private bool awaitingPowerBase = false;
-        private bool awaitingPowerExponent = false;
-        private bool awaitingLnInput = false;
-        private string sqrtInput = "";
-        private string powerBase = "";
-        private string powerExponent = "";
-        private string lnInput = "";
         public MainWindow()
         {
             InitializeComponent();
@@ -51,10 +43,11 @@ namespace OOP_2sem_lab2
                         case "+":
                             button.Click += BCOperations;
                             break;
-                        case "√":
+                        case "√x":
                         case "n^x":
                         case "ln":
                         case "π":
+                        case "e":
                             button.Click += BCExtraColumnOperations;
                             break;
                         case "C":
@@ -72,17 +65,18 @@ namespace OOP_2sem_lab2
         private void BCOperations(object sender, RoutedEventArgs e)
         {
             CheckErrorOnScreen();
-            isFirstSymbol = exprLabel.Text.Length == 0 ? true : false;
 
             string str = (string)((Button)e.OriginalSource).Content;
 
             if (exprLabel.Text.Length < 30)
             {
-                if (isFirstSymbol || !op.Contains(exprLabel.Text[exprLabel.Text.Length - 1].ToString()))
+                if (!isFirstSymbol)
                 {
-                    _commandManager.ExecuteCommand(new AddTextCommand(_calculator, str));
-                    exprLabel.Text = _calculator.Expression;
-                    historyLabel.Text = _calculator.Result;
+                    if (!op.Contains(exprLabel.Text[exprLabel.Text.Length - 1].ToString()))
+                    {
+                        exprLabel.Text += str;
+                        isFirstSymbol = exprLabel.Text.Length == 0 ? true : false;
+                    }
                 }
             }
         }
@@ -101,15 +95,12 @@ namespace OOP_2sem_lab2
                     break;
                 case "√x":
                     SqrtOp();
-                    Calculation();
                     break;
                 case "n^x":
                     PowerOp();
-                    Calculation();
                     break;
                 case "ln":
                     LnOp();
-                    Calculation();
                     break;
             }
         }
@@ -136,7 +127,14 @@ namespace OOP_2sem_lab2
             CheckErrorOnScreen();
             string str = (string)((Button)e.OriginalSource).Content;
 
-            OthersOp(str);
+            if (exprLabel.Text.Length < 30)
+            {
+                if (double.TryParse(str, out double d))
+                {
+                    exprLabel.Text += str;
+                    isFirstSymbol = exprLabel.Text.Length == 0 ? true : false;
+                }
+            }
         }
         private void ToggleExtraColumn(object sender, RoutedEventArgs e)
         {
@@ -162,181 +160,116 @@ namespace OOP_2sem_lab2
         {
             try
             {
-                exprLabel.Text = historyLabel.Text;
-                historyLabel.Text = "";
+                if (exprLabel.Text.Contains("^"))
+                {
+                    string res = PowerOpCalculation();
+                    historyLabel.Text = exprLabel.Text;
+                    exprLabel.Text = res;
+                }
+                else
+                {
+                    string res = new DataTable().Compute(exprLabel.Text, null).ToString();
+                    historyLabel.Text = exprLabel.Text;
+                    exprLabel.Text = res;
+                }
             }
             catch
             {
                 exprLabel.Text = "Error!";
-                historyLabel.Text = "";
             }
         }
         private void DelOp()
         {
-            if (exprLabel.Text == "Error!")
-            {
-                exprLabel.Text = "";
-            }
-
             if (exprLabel.Text.Length > 0)
             {
                 exprLabel.Text = exprLabel.Text.Remove(exprLabel.Text.Length - 1);
-                if (exprLabel.Text.Length > 0)
-                {
-                    Calculation();
-                }
-                else
-                {
-                    exprLabel.Text = "Error!";
-                    historyLabel.Text = "";
-                }
+
+                isFirstSymbol = exprLabel.Text.Length == 0 ? true : false;
             }
         }
         private void ClearOp()
         {
+            _calculator.Clear();
             exprLabel.Text = "";
             historyLabel.Text = "";
-            awaitingSqrtInput = false;
-            awaitingPowerBase = false;
-            awaitingPowerExponent = false;
-            awaitingLnInput = false;
-            sqrtInput = "";
-            powerBase = "";
-            powerExponent = "";
-            lnInput = "";
+            isFirstSymbol = true;
         }
         private void PiOp()
         {
             if (isFirstSymbol || op.Contains(exprLabel.Text[exprLabel.Text.Length - 1].ToString()))
             {
-                _commandManager.ExecuteCommand(new AddTextCommand(_calculator, Math.PI.ToString("0.00000")));
-                exprLabel.Text = _calculator.Expression;
-                historyLabel.Text = _calculator.Result;
+                exprLabel.Text += Math.PI.ToString("0.00000");
+                isFirstSymbol = exprLabel.Text.Length == 0 ? true : false;
             }
         }
         private void EOp()
         {
             if (isFirstSymbol || op.Contains(exprLabel.Text[exprLabel.Text.Length - 1].ToString()))
             {
-                _commandManager.ExecuteCommand(new AddTextCommand(_calculator, Math.E.ToString("0.00000")));
-                exprLabel.Text = _calculator.Expression;
-                historyLabel.Text = _calculator.Result;
-            }
-        }
-        private void OthersOp(string str)
-        {
-            if (exprLabel.Text.Length < 30)
-            {
-                if (double.TryParse(str, out double d))
-                {
-                    exprLabel.Text += str;
-                    try
-                    {
-                        _commandManager.ExecuteCommand(new AddTextCommand(_calculator, str));
-                        exprLabel.Text = _calculator.Expression;
-                        historyLabel.Text = _calculator.Result;
-                    }
-                    catch
-                    {
-                        exprLabel.Text = "Error!";
-                        historyLabel.Text = "";
-                    }
-                }
+                exprLabel.Text += Math.E.ToString("0.00000");
+                isFirstSymbol = exprLabel.Text.Length == 0 ? true : false;
             }
         }
         private void SqrtOp()
         {
-            if (!awaitingSqrtInput)
+            if (double.TryParse(exprLabel.Text, out double d))
             {
-                awaitingSqrtInput = true;
-                sqrtInput = "";
+                string res = Math.Sqrt(d).ToString();
+                historyLabel.Text = exprLabel.Text;
+                exprLabel.Text = res;
             }
             else
             {
-                if (double.TryParse(sqrtInput, out double num) && num >= 0)
-                {
-                    double result = Math.Sqrt(num);
-
-                    _commandManager.ExecuteCommand(new AddTextCommand(_calculator, result.ToString("0.#####")));
-                    exprLabel.Text = _calculator.Expression;
-                    historyLabel.Text = _calculator.Result;
-                }
-                else
-                {
-                    exprLabel.Text = "Error!";
-                    historyLabel.Text = "";
-                }
-                awaitingSqrtInput = false;
+                exprLabel.Text = "Error!";
             }
         }
         private void PowerOp()
         {
-            if (!awaitingPowerBase && !awaitingPowerExponent)
+            if (!isFirstSymbol)
             {
-                awaitingPowerBase = true;
-                powerBase = "";
-                powerExponent = "";
-            }
-            else if (awaitingPowerBase)
-            {
-                awaitingPowerBase = false;
-                awaitingPowerExponent = true;
-            }
-            else if (awaitingPowerExponent)
-            {
-                if (double.TryParse(powerBase, out double baseNum) && double.TryParse(powerExponent, out double expNum))
+                if (!op.Contains(exprLabel.Text[exprLabel.Text.Length - 1].ToString()))
                 {
-                    double result = Math.Pow(baseNum, expNum);
+                    exprLabel.Text += "^";
+                }
+            }
+        }
+        private string PowerOpCalculation()
+        {
+            Regex regex = new Regex(@"^(-?\d+(?:\.\d+)?)\^(-?\d+(?:\.\d+)?)$");
 
-                    _commandManager.ExecuteCommand(new AddTextCommand(_calculator, result.ToString("0.#####")));
-                    exprLabel.Text = _calculator.Expression;
-                    historyLabel.Text = _calculator.Result;
+            try
+            {
+                Match match = regex.Match(exprLabel.Text);
+                if (match.Success)
+                {
+                    double baseNumber = double.Parse(match.Groups[1].Value);
+                    double exponent = double.Parse(match.Groups[2].Value);
+
+                    return Math.Pow(baseNumber, exponent).ToString();
                 }
                 else
                 {
-                    exprLabel.Text = "Error!";
-                    historyLabel.Text = "";
+                    throw new Exception();
                 }
-                awaitingPowerExponent = false;
+            }
+            catch
+            {
+                throw new Exception();
             }
         }
 
         private void LnOp()
         {
-            if (!awaitingLnInput)
+            if (double.TryParse(exprLabel.Text, out double d))
             {
-                awaitingLnInput = true;
-                lnInput = "";
+                string res = Math.Log(d).ToString();
+                historyLabel.Text = exprLabel.Text;
+                exprLabel.Text = res;
             }
             else
             {
-                if (double.TryParse(lnInput, out double num) && num > 0)
-                {
-                    double result = Math.Log(num);
-
-                    _commandManager.ExecuteCommand(new AddTextCommand(_calculator, result.ToString("0.#####")));
-                    exprLabel.Text = _calculator.Expression;
-                    historyLabel.Text = _calculator.Result;
-                }
-                else
-                {
-                    exprLabel.Text = "Error!";
-                    historyLabel.Text = "";
-                }
-                awaitingLnInput = false;
+                exprLabel.Text = "Error!";
             }
-        }
-        private void Calculation()
-        {
-            try
-            {
-                if (!op.Contains(exprLabel.Text[exprLabel.Text.Length - 1].ToString()))
-                {
-                    string result = new DataTable().Compute(exprLabel.Text, null).ToString();
-                    historyLabel.Text = result;
-                }
-            }
-            catch { }
         }
         private void CheckErrorOnScreen()
         {
