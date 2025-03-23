@@ -17,5 +17,10 @@ namespace OOP_2sem_lab2
             Expression = newExpr;
             History = newHistory;
         }
+        public void ClearCalculator()
+        {
+            Expression = "";
+            History = "";
+        }
     }
 }

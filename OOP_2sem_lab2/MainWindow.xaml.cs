@@ -192,10 +192,11 @@ namespace OOP_2sem_lab2
         }
         private void ClearOp()
         {
-            //_calculator.Clear();
             exprLabel.Text = "";
             historyLabel.Text = "";
             isFirstSymbol = true;
+            _commandManager.ClearHistory();
+            _calculator.ClearCalculator();
         }
         private void PiOp()
         {
