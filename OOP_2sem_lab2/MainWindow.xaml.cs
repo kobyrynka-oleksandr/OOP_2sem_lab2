@@ -143,35 +143,38 @@ namespace OOP_2sem_lab2
             ToggleExtraColumnButton.Content = isExtraVisible ? "<" : "≡";
             this.Width = isExtraVisible ? 370 : 300;
         }
-        private void Undo(object sender, EventArgs e)
+        private void Undo(object sender, RoutedEventArgs e)
         {
             _commandManager.Undo();
             exprLabel.Text = _calculator.Expression;
-            historyLabel.Text = _calculator.Result;
+            historyLabel.Text = _calculator.History;
         }
 
-        private void Redo(object sender, EventArgs e)
+        private void Redo(object sender, RoutedEventArgs e)
         {
             _commandManager.Redo();
             exprLabel.Text = _calculator.Expression;
-            historyLabel.Text = _calculator.Result;
+            historyLabel.Text = _calculator.History;
         }
         private void EqualOp()
         {
             try
             {
+                string newResult;
                 if (exprLabel.Text.Contains("^"))
                 {
-                    string res = PowerOpCalculation();
-                    historyLabel.Text = exprLabel.Text;
-                    exprLabel.Text = res;
+                    newResult = PowerOpCalculation();
                 }
                 else
                 {
-                    string res = new DataTable().Compute(exprLabel.Text, null).ToString();
-                    historyLabel.Text = exprLabel.Text;
-                    exprLabel.Text = res;
+                    newResult = new DataTable().Compute(exprLabel.Text, null).ToString();
                 }
+
+                var command = new ExpressionChangeCommand(_calculator, newResult, exprLabel.Text);
+                _commandManager.ExecuteCommand(command);
+
+                historyLabel.Text = exprLabel.Text;
+                exprLabel.Text = newResult;
             }
             catch
             {
@@ -189,7 +192,7 @@ namespace OOP_2sem_lab2
         }
         private void ClearOp()
         {
-            _calculator.Clear();
+            //_calculator.Clear();
             exprLabel.Text = "";
             historyLabel.Text = "";
             isFirstSymbol = true;
@@ -215,6 +218,10 @@ namespace OOP_2sem_lab2
             if (double.TryParse(exprLabel.Text, out double d))
             {
                 string res = Math.Sqrt(d).ToString();
+
+                var command = new ExpressionChangeCommand(_calculator, res, exprLabel.Text);
+                _commandManager.ExecuteCommand(command);
+
                 historyLabel.Text = exprLabel.Text;
                 exprLabel.Text = res;
             }
@@ -263,6 +270,10 @@ namespace OOP_2sem_lab2
             if (double.TryParse(exprLabel.Text, out double d))
             {
                 string res = Math.Log(d).ToString();
+
+                var command = new ExpressionChangeCommand(_calculator, res, exprLabel.Text);
+                _commandManager.ExecuteCommand(command);
+
                 historyLabel.Text = exprLabel.Text;
                 exprLabel.Text = res;
             }

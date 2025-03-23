@@ -37,10 +37,5 @@ namespace OOP_2sem_lab2
                 _undoStack.Push(command);
             }
         }
-        public void ClearHistory()
-        {
-            _undoStack.Clear();
-            _redoStack.Clear();
-        }
     }
 }
