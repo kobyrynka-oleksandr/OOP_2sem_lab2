@@ -23,7 +23,7 @@ namespace OOP_2sem_lab2
     {
         private Calculator _calculator = new Calculator();
         private CommandManager _commandManager = new CommandManager();
-        List<string> op = new List<string>() { "/", "*", "-", "+", "^" };
+        List<string> op = new List<string>() { "/", "*", "-", "+", "^", "." };
         bool isFirstSymbol = true;
         private bool isExtraVisible = false;
         public MainWindow()
