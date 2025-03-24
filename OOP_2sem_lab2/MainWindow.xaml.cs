@@ -26,6 +26,9 @@ namespace OOP_2sem_lab2
         List<string> op = new List<string>() { "/", "*", "-", "+", "^", "." };
         bool isFirstSymbol = true;
         private bool isExtraVisible = false;
+        private bool isResult = false;
+        private int resultLength = 0;
+        private bool isOpUsed = false;
         public MainWindow()
         {
             InitializeComponent();
@@ -72,10 +75,21 @@ namespace OOP_2sem_lab2
             {
                 if (!isFirstSymbol)
                 {
-                    if (!op.Contains(exprLabel.Text[exprLabel.Text.Length - 1].ToString()))
+                    if ((string)((Button)e.OriginalSource).Content == ".")
+                    {
+                        if (exprLabel.Text[exprLabel.Text.Length - 1].ToString() != ".")
+                        {
+                            exprLabel.Text += str;
+                            isFirstSymbol = exprLabel.Text.Length == 0 ? true : false;
+                            isResult = false;
+                        }
+                    }
+                    else if (!op.Contains(exprLabel.Text[exprLabel.Text.Length - 1].ToString()) && !isOpUsed)
                     {
                         exprLabel.Text += str;
                         isFirstSymbol = exprLabel.Text.Length == 0 ? true : false;
+                        isResult = false;
+                        isOpUsed = true;
                     }
                 }
             }
@@ -127,7 +141,7 @@ namespace OOP_2sem_lab2
             CheckErrorOnScreen();
             string str = (string)((Button)e.OriginalSource).Content;
 
-            if (exprLabel.Text.Length < 30)
+            if (exprLabel.Text.Length < 30 && !isResult)
             {
                 if (double.TryParse(str, out double d))
                 {
@@ -148,6 +162,7 @@ namespace OOP_2sem_lab2
             _commandManager.Undo();
             exprLabel.Text = _calculator.Expression;
             historyLabel.Text = _calculator.History;
+            resultLength = exprLabel.Text.Length;
         }
 
         private void Redo(object sender, RoutedEventArgs e)
@@ -155,6 +170,7 @@ namespace OOP_2sem_lab2
             _commandManager.Redo();
             exprLabel.Text = _calculator.Expression;
             historyLabel.Text = _calculator.History;
+            resultLength = exprLabel.Text.Length;
         }
         private void EqualOp()
         {
@@ -175,16 +191,30 @@ namespace OOP_2sem_lab2
 
                 historyLabel.Text = exprLabel.Text;
                 exprLabel.Text = newResult;
+
+                isResult = true;
+                resultLength = exprLabel.Text.Length;
+
+                isOpUsed = false;
             }
             catch
             {
                 exprLabel.Text = "Error!";
+
+                isResult = true;
+                resultLength = exprLabel.Text.Length;
+
+                isOpUsed = false;
             }
         }
         private void DelOp()
         {
-            if (exprLabel.Text.Length > 0)
+            if (exprLabel.Text.Length > 0 && resultLength != exprLabel.Text.Length)
             {
+                if (op.Contains((exprLabel.Text[exprLabel.Text.Length - 1]).ToString()))
+                {
+                    isOpUsed = false;
+                }
                 exprLabel.Text = exprLabel.Text.Remove(exprLabel.Text.Length - 1);
 
                 isFirstSymbol = exprLabel.Text.Length == 0 ? true : false;
@@ -197,6 +227,11 @@ namespace OOP_2sem_lab2
             isFirstSymbol = true;
             _commandManager.ClearHistory();
             _calculator.ClearCalculator();
+
+            resultLength = 0;
+            isResult = false;
+
+            isOpUsed = false;
         }
         private void PiOp()
         {
@@ -225,19 +260,31 @@ namespace OOP_2sem_lab2
 
                 historyLabel.Text = exprLabel.Text;
                 exprLabel.Text = res;
+
+                isResult = true;
+                resultLength = exprLabel.Text.Length;
+
+                isOpUsed = false;
             }
             else
             {
                 exprLabel.Text = "Error!";
+
+                isResult = true;
+                resultLength = exprLabel.Text.Length;
+
+                isOpUsed = false;
             }
         }
         private void PowerOp()
         {
             if (!isFirstSymbol)
             {
-                if (!op.Contains(exprLabel.Text[exprLabel.Text.Length - 1].ToString()))
+                if (!op.Contains(exprLabel.Text[exprLabel.Text.Length - 1].ToString()) && !isOpUsed)
                 {
                     exprLabel.Text += "^";
+                    isResult = false;
+                    isOpUsed = true;
                 }
             }
         }
@@ -277,10 +324,20 @@ namespace OOP_2sem_lab2
 
                 historyLabel.Text = exprLabel.Text;
                 exprLabel.Text = res;
+
+                isResult = true;
+                resultLength = exprLabel.Text.Length;
+
+                isOpUsed = false;
             }
             else
             {
                 exprLabel.Text = "Error!";
+
+                isResult = true;
+                resultLength = exprLabel.Text.Length;
+
+                isOpUsed = false;
             }
         }
         private void CheckErrorOnScreen()
@@ -288,6 +345,11 @@ namespace OOP_2sem_lab2
             if (exprLabel.Text == "Error!")
             {
                 exprLabel.Text = "";
+
+                isResult = true;
+                resultLength = exprLabel.Text.Length;
+
+                isOpUsed = false;
             }
         }
     }
